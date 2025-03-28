@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Message } from '@/components/ChatMessages';
 import Sidebar from '@/components/Sidebar';
@@ -8,13 +7,13 @@ import ChatInput from '@/components/ChatInput';
 import InfoPanel from '@/components/InfoPanel';
 import OnboardingModal from '@/components/OnboardingModal';
 import CanvasDrawer from '@/components/CanvasDrawer';
+import MobileNavigation from '@/components/MobileNavigation';
 import { useToast } from '@/hooks/use-toast';
 import { MessageSquare, Crown, Flame, CloudDrizzle, CloudRain, CloudLightning } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import RetroModeToggle from '@/components/RetroModeToggle';
 
-// Mock data
 const generateMockMessages = (channelId: string): Message[] => {
   const baseMessages: Message[] = [
     {
@@ -76,7 +75,6 @@ const generateMockMessages = (channelId: string): Message[] => {
     }
   ];
   
-  // Customize messages based on channel
   if (channelId === 'general') {
     return baseMessages;
   } else if (channelId === 'design') {
@@ -139,14 +137,13 @@ const Index = () => {
   const [showOnboarding, setShowOnboarding] = useState(true);
   const [showCanvas, setShowCanvas] = useState(false);
   const [groupMood, setGroupMood] = useState<'sunny' | 'cloudy' | 'stormy'>('sunny');
+  const [showMobileChat, setShowMobileChat] = useState(true);
   const { toast } = useToast();
   const isMobile = useIsMobile();
   
-  // Load messages when channel changes
   useEffect(() => {
     setMessages(generateMockMessages(activeChannel));
     
-    // Add typing indicator after a delay
     const timer = setTimeout(() => {
       const typingMessage: Message = {
         id: 'typing',
@@ -161,7 +158,6 @@ const Index = () => {
       
       setMessages(prev => [...prev, typingMessage]);
       
-      // Remove typing indicator and add the message after a delay
       const messageTimer = setTimeout(() => {
         const newMessage: Message = {
           id: `msg-${Date.now()}`,
@@ -181,14 +177,12 @@ const Index = () => {
       return () => clearTimeout(messageTimer);
     }, 5000);
     
-    // Set a random mood for the group chat
     const moods: Array<'sunny' | 'cloudy' | 'stormy'> = ['sunny', 'cloudy', 'stormy'];
     setGroupMood(moods[Math.floor(Math.random() * moods.length)]);
     
     return () => clearTimeout(timer);
   }, [activeChannel]);
   
-  // Toggle dark mode
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark');
@@ -197,7 +191,6 @@ const Index = () => {
     }
   }, [darkMode]);
   
-  // Toggle retro 90s mode
   useEffect(() => {
     if (retro90sMode) {
       document.documentElement.classList.add('retro-mode');
@@ -233,7 +226,6 @@ const Index = () => {
     
     setMessages(prev => [...prev, newMessage]);
 
-    // Easter egg: detect konami code
     if (content.toLowerCase() === "up up down down left right left right b a") {
       toast({
         title: "Developer Menu Unlocked!",
@@ -242,7 +234,6 @@ const Index = () => {
       toggleRetro90sMode();
     }
 
-    // Self-destruct message handling
     if (content.toLowerCase().includes("/self-destruct")) {
       const messageId = `msg-${Date.now()}`;
       const destructMessage: Message = {
@@ -255,7 +246,6 @@ const Index = () => {
       
       setMessages(prev => [...prev.filter(m => m.id !== newMessage.id), destructMessage]);
       
-      // Set timeout to delete the message
       setTimeout(() => {
         setMessages(prev => prev.filter(m => m.id !== messageId));
         toast({
@@ -295,23 +285,38 @@ const Index = () => {
     }
   };
   
+  const toggleMobileView = () => {
+    setShowMobileChat(!showMobileChat);
+  };
+  
   return (
     <div className={`h-screen flex flex-col ${retro90sMode ? 'retro-crt' : ''}`}>
+      {isMobile && (
+        <MobileNavigation 
+          showChat={showMobileChat} 
+          toggleView={toggleMobileView}
+          channelName={getChannelName(activeChannel)}
+        />
+      )}
+      
       <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar */}
-        {(!isMobile || !activeChannel) && (
-          <div className="w-64 flex-shrink-0 h-full">
+        {(!isMobile || (isMobile && !showMobileChat)) && (
+          <div className="w-full lg:w-64 flex-shrink-0 h-full">
             <Sidebar 
               activeChannelId={activeChannel} 
               darkMode={darkMode}
               toggleDarkMode={toggleDarkMode}
-              onChannelSelect={handleChannelSelect}
+              onChannelSelect={(channelId) => {
+                handleChannelSelect(channelId);
+                if (isMobile) {
+                  setShowMobileChat(true);
+                }
+              }}
             />
           </div>
         )}
         
-        {/* Main chat area */}
-        {(!isMobile || activeChannel) && (
+        {(!isMobile || (isMobile && showMobileChat)) && (
           <div className="flex-1 flex flex-col h-full">
             <ChatHeader 
               channelId={activeChannel}
@@ -324,7 +329,7 @@ const Index = () => {
                   {getChannelType(activeChannel) === 'channel' && (
                     <div className="flex items-center gap-1" title={`Group Mood: ${groupMood}`}>
                       {getMoodIcon()}
-                      <span className="text-xs capitalize">{groupMood}</span>
+                      <span className="text-xs capitalize hidden sm:inline">{groupMood}</span>
                     </div>
                   )}
                   <RetroModeToggle isEnabled={retro90sMode} onToggle={toggleRetro90sMode} />
@@ -344,7 +349,7 @@ const Index = () => {
                   <div className="flex-1 flex flex-col items-center justify-center">
                     <MessageSquare size={48} className="text-muted-foreground mb-2" />
                     <h3 className="text-xl font-semibold">No messages yet</h3>
-                    <p className="text-muted-foreground">
+                    <p className="text-muted-foreground text-center px-4">
                       Start a conversation by sending a message below.
                     </p>
                   </div>
@@ -356,9 +361,8 @@ const Index = () => {
                 />
               </div>
               
-              {/* Info panel (only show on larger screens or when explicitly requested) */}
-              {(!isMobile || (isMobile && showInfoPanel)) && showInfoPanel && (
-                <div className="w-80 flex-shrink-0">
+              {showInfoPanel && (
+                <div className={`${isMobile ? 'absolute inset-0 z-10 bg-background' : 'w-80 flex-shrink-0'}`}>
                   <InfoPanel 
                     channelId={activeChannel}
                     channelName={getChannelName(activeChannel)}
@@ -372,13 +376,11 @@ const Index = () => {
         )}
       </div>
       
-      {/* Onboarding modal */}
       <OnboardingModal 
         isOpen={showOnboarding} 
         onClose={() => setShowOnboarding(false)} 
       />
 
-      {/* Canvas drawer */}
       <Sheet open={showCanvas} onOpenChange={setShowCanvas}>
         <SheetContent side="bottom" className="h-[70vh] p-0">
           <CanvasDrawer onClose={() => setShowCanvas(false)} />

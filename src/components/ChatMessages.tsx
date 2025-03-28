@@ -51,7 +51,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, currentUserId, re
   };
 
   return (
-    <div className={`flex-1 overflow-y-auto px-6 py-4 ${retroMode ? 'font-mono text-green-500 bg-black/80' : ''}`}>
+    <div className={`flex-1 overflow-y-auto px-3 sm:px-6 py-4 ${retroMode ? 'font-mono text-green-500 bg-black/80' : ''}`}>
       {messages.map((message, index) => {
         const isSelf = message.sender.id === currentUserId;
         const showAvatar = index === 0 || 
@@ -61,45 +61,45 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, currentUserId, re
           <div key={message.id} className="mb-4">
             {showAvatar && (
               <div className="flex items-start mb-1">
-                <Avatar className="h-8 w-8 mr-2">
+                <Avatar className="h-7 w-7 sm:h-8 sm:w-8 mr-2">
                   <AvatarImage 
                     src={message.sender.avatar || `https://api.dicebear.com/7.x/personas/svg?seed=${message.sender.id}`} 
                   />
                   <AvatarFallback>{message.sender.name[0]}</AvatarFallback>
                 </Avatar>
-                <div className="flex items-baseline">
-                  <span className="font-medium mr-2 flex items-center gap-1">
+                <div className="flex items-baseline min-w-0 flex-1">
+                  <span className="font-medium mr-2 flex items-center gap-1 truncate">
                     {message.sender.name}
-                    {message.isAdmin && <Crown size={12} className="text-amber-400" />}
+                    {message.isAdmin && <Crown size={12} className="text-amber-400 flex-shrink-0" />}
                   </span>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-xs text-muted-foreground whitespace-nowrap">
                     {formatTime(message.timestamp)}
                   </span>
                 </div>
               </div>
             )}
             
-            <div className={`flex group ${showAvatar ? 'ml-10' : 'ml-10'}`}>
+            <div className={`flex group ${showAvatar ? 'ml-9 sm:ml-10' : 'ml-9 sm:ml-10'}`}>
               <div 
-                className={`rounded-lg p-3 ${
+                className={`rounded-lg p-2 sm:p-3 max-w-[calc(100%-3rem)] ${
                   message.selfDestruct ? 'animate-burning bg-red-500/70 text-white' : 
                   isSelf ? 'bg-chatflow-blue-light text-white' : 'bg-secondary'
-                } ${retroMode ? 'border border-green-500' : ''}`}
+                } ${retroMode ? 'border border-green-500' : ''} break-words`}
               >
                 {message.content}
                 
                 {message.attachments && message.attachments.length > 0 && (
                   <div className="mt-2 space-y-2">
                     {message.attachments.map((attachment, i) => (
-                      <div key={i} className="rounded border p-2 flex items-center">
+                      <div key={i} className="rounded border p-2 flex items-center overflow-hidden">
                         {attachment.type === 'image' ? (
-                          <div>
+                          <div className="w-full">
                             <Image size={16} className="mr-2 inline-block" />
                             <a 
                               href={attachment.url} 
                               target="_blank" 
                               rel="noopener noreferrer"
-                              className="text-blue-400 hover:underline"
+                              className="text-blue-400 hover:underline text-sm truncate inline-block max-w-full"
                             >
                               {attachment.name}
                             </a>
@@ -107,34 +107,34 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, currentUserId, re
                               <img 
                                 src={attachment.preview || attachment.url} 
                                 alt={attachment.name}
-                                className="max-h-40 rounded object-contain"
+                                className="max-h-36 sm:max-h-40 rounded object-contain"
                               />
                             </div>
                           </div>
                         ) : attachment.type === 'file' ? (
-                          <>
-                            <FileText size={16} className="mr-2" />
+                          <div className="flex items-center min-w-0 w-full">
+                            <FileText size={16} className="mr-2 flex-shrink-0" />
                             <a 
                               href={attachment.url} 
                               target="_blank" 
                               rel="noopener noreferrer"
-                              className="text-blue-400 hover:underline"
+                              className="text-blue-400 hover:underline truncate"
                             >
                               {attachment.name}
                             </a>
-                          </>
+                          </div>
                         ) : (
-                          <>
-                            <Link size={16} className="mr-2" />
+                          <div className="flex items-center min-w-0 w-full">
+                            <Link size={16} className="mr-2 flex-shrink-0" />
                             <a 
                               href={attachment.url} 
                               target="_blank" 
                               rel="noopener noreferrer"
-                              className="text-blue-400 hover:underline"
+                              className="text-blue-400 hover:underline truncate"
                             >
                               {attachment.name}
                             </a>
-                          </>
+                          </div>
                         )}
                       </div>
                     ))}
@@ -149,17 +149,17 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, currentUserId, re
                 )}
               </div>
               
-              <div className="ml-2 opacity-0 group-hover:opacity-100 flex items-center space-x-1">
+              <div className="ml-1 sm:ml-2 opacity-0 group-hover:opacity-100 flex items-center space-x-1">
                 <button className="p-1 rounded-full hover:bg-secondary text-muted-foreground">
-                  <Smile size={16} />
+                  <Smile size={14} className="sm:size-[16px]" />
                 </button>
-                <button className="p-1 rounded-full hover:bg-secondary text-muted-foreground">
-                  <Bookmark size={16} />
+                <button className="p-1 rounded-full hover:bg-secondary text-muted-foreground hidden sm:flex">
+                  <Bookmark size={14} className="sm:size-[16px]" />
                 </button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button className="p-1 rounded-full hover:bg-secondary text-muted-foreground">
-                      <MoreHorizontal size={16} />
+                      <MoreHorizontal size={14} className="sm:size-[16px]" />
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start">
@@ -173,20 +173,20 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, currentUserId, re
             </div>
             
             {message.reactions && message.reactions.length > 0 && (
-              <div className="ml-10 mt-1 flex flex-wrap gap-2">
+              <div className="ml-9 sm:ml-10 mt-1 flex flex-wrap gap-2">
                 {message.reactions.map((reaction, i) => (
                   <button 
                     key={i}
-                    className="text-xs bg-secondary rounded-full px-2 py-0.5 hover:bg-secondary/80"
+                    className="text-xs bg-secondary rounded-full px-1.5 py-0.5 sm:px-2 sm:py-0.5 hover:bg-secondary/80"
                   >
-                    {reaction.emoji} {reaction.count}
+                    {reaction.emoji} <span className="hidden xs:inline">{reaction.count}</span>
                   </button>
                 ))}
               </div>
             )}
             
             {message.isTyping && (
-              <div className="ml-10 mt-1 typing-indicator">
+              <div className="ml-9 sm:ml-10 mt-1 typing-indicator">
                 <div className="typing-dot"></div>
                 <div className="typing-dot"></div>
                 <div className="typing-dot"></div>
