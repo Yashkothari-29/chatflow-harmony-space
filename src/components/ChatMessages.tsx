@@ -1,7 +1,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MessageSquare, Image, FileText, Link, Smile, Bookmark, MoreHorizontal, Crown } from "lucide-react";
+import { MessageSquare, Image, FileText, Link, Smile, Bookmark, MoreHorizontal, Crown, Flame } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export interface Message {

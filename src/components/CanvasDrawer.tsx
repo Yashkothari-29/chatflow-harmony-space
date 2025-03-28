@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { Canvas as FabricCanvas, Object as FabricObject, Rect, Circle, Path } from 'fabric';
 import { Button } from "@/components/ui/button";
@@ -177,7 +176,8 @@ const CanvasDrawer: React.FC<CanvasDrawerProps> = ({ onClose }) => {
   const handleClear = () => {
     if (!fabricCanvas) return;
     fabricCanvas.clear();
-    fabricCanvas.setBackgroundColor('#f8f9fa', fabricCanvas.renderAll.bind(fabricCanvas));
+    fabricCanvas.backgroundColor = '#f8f9fa';
+    fabricCanvas.renderAll();
     toast({
       title: "Canvas Cleared",
       description: "All drawings have been removed",
@@ -196,10 +196,7 @@ const CanvasDrawer: React.FC<CanvasDrawerProps> = ({ onClose }) => {
   const handleDownload = () => {
     if (!fabricCanvas || !canvasRef.current) return;
     
-    const dataURL = canvasRef.current.toDataURL({
-      format: 'png',
-      quality: 1,
-    });
+    const dataURL = canvasRef.current.toDataURL('png');
     
     const link = document.createElement('a');
     link.download = 'chatflow-drawing.png';
