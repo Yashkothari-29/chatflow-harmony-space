@@ -12,7 +12,8 @@ import {
   Link as LinkIcon, 
   PinIcon,
   Bookmark,
-  X
+  X,
+  MessageSquare
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
