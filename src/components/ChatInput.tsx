@@ -10,7 +10,8 @@ import {
   AtSign,
   Camera,
   FileText,
-  Link as LinkIcon
+  Link as LinkIcon,
+  PencilLine
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,9 +24,10 @@ import { useToast } from "@/hooks/use-toast";
 
 interface ChatInputProps {
   onSendMessage: (content: string) => void;
+  onCanvasOpen?: () => void;
 }
 
-const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage }) => {
+const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, onCanvasOpen }) => {
   const [message, setMessage] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -62,7 +64,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage }) => {
       <div className="relative">
         <Textarea
           ref={textareaRef}
-          placeholder="Type a message..."
+          placeholder="Type a message... (Try /self-destruct for self-destructing messages)"
           className="min-h-[80px] resize-none pr-10"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
@@ -134,6 +136,14 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage }) => {
               >
                 <AtSign size={20} />
                 <span className="text-xs">Mention</span>
+              </Button>
+              <Button 
+                variant="ghost" 
+                className="flex flex-col items-center justify-center h-16 space-y-1" 
+                onClick={onCanvasOpen}
+              >
+                <PencilLine size={20} />
+                <span className="text-xs">Canvas</span>
               </Button>
             </div>
           </PopoverContent>

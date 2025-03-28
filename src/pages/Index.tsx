@@ -7,9 +7,12 @@ import ChatMessages from '@/components/ChatMessages';
 import ChatInput from '@/components/ChatInput';
 import InfoPanel from '@/components/InfoPanel';
 import OnboardingModal from '@/components/OnboardingModal';
+import CanvasDrawer from '@/components/CanvasDrawer';
 import { useToast } from '@/hooks/use-toast';
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, Crown, Flame, CloudDrizzle, CloudRain, CloudLightning } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import RetroModeToggle from '@/components/RetroModeToggle';
 
 // Mock data
 const generateMockMessages = (channelId: string): Message[] => {
@@ -129,10 +132,13 @@ const generateMockMessages = (channelId: string): Message[] => {
 
 const Index = () => {
   const [darkMode, setDarkMode] = useState(false);
+  const [retro90sMode, setRetro90sMode] = useState(false);
   const [activeChannel, setActiveChannel] = useState('general');
   const [messages, setMessages] = useState<Message[]>([]);
   const [showInfoPanel, setShowInfoPanel] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(true);
+  const [showCanvas, setShowCanvas] = useState(false);
+  const [groupMood, setGroupMood] = useState<'sunny' | 'cloudy' | 'stormy'>('sunny');
   const { toast } = useToast();
   const isMobile = useIsMobile();
   
@@ -175,6 +181,10 @@ const Index = () => {
       return () => clearTimeout(messageTimer);
     }, 5000);
     
+    // Set a random mood for the group chat
+    const moods: Array<'sunny' | 'cloudy' | 'stormy'> = ['sunny', 'cloudy', 'stormy'];
+    setGroupMood(moods[Math.floor(Math.random() * moods.length)]);
+    
     return () => clearTimeout(timer);
   }, [activeChannel]);
   
@@ -187,8 +197,25 @@ const Index = () => {
     }
   }, [darkMode]);
   
+  // Toggle retro 90s mode
+  useEffect(() => {
+    if (retro90sMode) {
+      document.documentElement.classList.add('retro-mode');
+    } else {
+      document.documentElement.classList.remove('retro-mode');
+    }
+  }, [retro90sMode]);
+  
   const toggleDarkMode = () => {
     setDarkMode(prev => !prev);
+  };
+  
+  const toggleRetro90sMode = () => {
+    setRetro90sMode(prev => !prev);
+    toast({
+      title: retro90sMode ? "Modern Mode Activated" : "Welcome to the 90s!",
+      description: retro90sMode ? "Back to the future!" : "Experience the nostalgia of dial-up and CRT monitors.",
+    });
   };
   
   const handleChannelSelect = (channelId: string) => {
@@ -205,6 +232,38 @@ const Index = () => {
     };
     
     setMessages(prev => [...prev, newMessage]);
+
+    // Easter egg: detect konami code
+    if (content.toLowerCase() === "up up down down left right left right b a") {
+      toast({
+        title: "Developer Menu Unlocked!",
+        description: "You've found the secret Konami code!",
+      });
+      toggleRetro90sMode();
+    }
+
+    // Self-destruct message handling
+    if (content.toLowerCase().includes("/self-destruct")) {
+      const messageId = `msg-${Date.now()}`;
+      const destructMessage: Message = {
+        id: messageId,
+        content: content.replace("/self-destruct", "").trim(),
+        sender: { id: 'user-1', name: 'Your Name' },
+        timestamp: new Date(),
+        selfDestruct: true
+      };
+      
+      setMessages(prev => [...prev.filter(m => m.id !== newMessage.id), destructMessage]);
+      
+      // Set timeout to delete the message
+      setTimeout(() => {
+        setMessages(prev => prev.filter(m => m.id !== messageId));
+        toast({
+          title: "Message Self-Destructed",
+          description: "Your message has been permanently deleted.",
+        });
+      }, 10000);
+    }
   };
   
   const handleSearchClick = () => {
@@ -227,8 +286,17 @@ const Index = () => {
     return 'channel';
   };
   
+  const getMoodIcon = () => {
+    switch (groupMood) {
+      case 'sunny': return <CloudDrizzle className="text-chatflow-green" />;
+      case 'cloudy': return <CloudRain className="text-amber-400" />;
+      case 'stormy': return <CloudLightning className="text-red-500" />;
+      default: return <CloudDrizzle className="text-chatflow-green" />;
+    }
+  };
+  
   return (
-    <div className="h-screen flex flex-col">
+    <div className={`h-screen flex flex-col ${retro90sMode ? 'retro-crt' : ''}`}>
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar */}
         {(!isMobile || !activeChannel) && (
@@ -251,6 +319,17 @@ const Index = () => {
               channelType={getChannelType(activeChannel)}
               onSearchClick={handleSearchClick}
               onInfoClick={() => setShowInfoPanel(!showInfoPanel)}
+              extraContent={
+                <div className="flex items-center gap-2">
+                  {getChannelType(activeChannel) === 'channel' && (
+                    <div className="flex items-center gap-1" title={`Group Mood: ${groupMood}`}>
+                      {getMoodIcon()}
+                      <span className="text-xs capitalize">{groupMood}</span>
+                    </div>
+                  )}
+                  <RetroModeToggle isEnabled={retro90sMode} onToggle={toggleRetro90sMode} />
+                </div>
+              }
             />
             
             <div className="flex-1 flex overflow-hidden">
@@ -259,6 +338,7 @@ const Index = () => {
                   <ChatMessages 
                     messages={messages} 
                     currentUserId="user-1"
+                    retroMode={retro90sMode}
                   />
                 ) : (
                   <div className="flex-1 flex flex-col items-center justify-center">
@@ -270,7 +350,10 @@ const Index = () => {
                   </div>
                 )}
                 
-                <ChatInput onSendMessage={handleSendMessage} />
+                <ChatInput 
+                  onSendMessage={handleSendMessage} 
+                  onCanvasOpen={() => setShowCanvas(true)}
+                />
               </div>
               
               {/* Info panel (only show on larger screens or when explicitly requested) */}
@@ -294,6 +377,13 @@ const Index = () => {
         isOpen={showOnboarding} 
         onClose={() => setShowOnboarding(false)} 
       />
+
+      {/* Canvas drawer */}
+      <Sheet open={showCanvas} onOpenChange={setShowCanvas}>
+        <SheetContent side="bottom" className="h-[70vh] p-0">
+          <CanvasDrawer onClose={() => setShowCanvas(false)} />
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };

@@ -1,7 +1,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MessageSquare, Image, FileText, Link, Smile, Bookmark, MoreHorizontal } from "lucide-react";
+import { MessageSquare, Image, FileText, Link, Smile, Bookmark, MoreHorizontal, Crown } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export interface Message {
@@ -25,14 +25,17 @@ export interface Message {
     preview?: string;
   }[];
   isTyping?: boolean;
+  isAdmin?: boolean;
+  selfDestruct?: boolean;
 }
 
 interface ChatMessagesProps {
   messages: Message[];
   currentUserId: string;
+  retroMode?: boolean;
 }
 
-const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, currentUserId }) => {
+const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, currentUserId, retroMode = false }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -48,7 +51,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, currentUserId }) 
   };
 
   return (
-    <div className="flex-1 overflow-y-auto px-6 py-4">
+    <div className={`flex-1 overflow-y-auto px-6 py-4 ${retroMode ? 'font-mono text-green-500 bg-black/80' : ''}`}>
       {messages.map((message, index) => {
         const isSelf = message.sender.id === currentUserId;
         const showAvatar = index === 0 || 
@@ -65,7 +68,10 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, currentUserId }) 
                   <AvatarFallback>{message.sender.name[0]}</AvatarFallback>
                 </Avatar>
                 <div className="flex items-baseline">
-                  <span className="font-medium mr-2">{message.sender.name}</span>
+                  <span className="font-medium mr-2 flex items-center gap-1">
+                    {message.sender.name}
+                    {message.isAdmin && <Crown size={12} className="text-amber-400" />}
+                  </span>
                   <span className="text-xs text-muted-foreground">
                     {formatTime(message.timestamp)}
                   </span>
@@ -74,7 +80,12 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, currentUserId }) 
             )}
             
             <div className={`flex group ${showAvatar ? 'ml-10' : 'ml-10'}`}>
-              <div className={`rounded-lg p-3 ${isSelf ? 'bg-chatflow-blue-light text-white' : 'bg-secondary'}`}>
+              <div 
+                className={`rounded-lg p-3 ${
+                  message.selfDestruct ? 'animate-burning bg-red-500/70 text-white' : 
+                  isSelf ? 'bg-chatflow-blue-light text-white' : 'bg-secondary'
+                } ${retroMode ? 'border border-green-500' : ''}`}
+              >
                 {message.content}
                 
                 {message.attachments && message.attachments.length > 0 && (
@@ -127,6 +138,13 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, currentUserId }) 
                         )}
                       </div>
                     ))}
+                  </div>
+                )}
+                
+                {message.selfDestruct && (
+                  <div className="flex items-center gap-1 mt-1 text-xs">
+                    <Flame size={12} className="animate-pulse" />
+                    <span>Self-destructing in 10s</span>
                   </div>
                 )}
               </div>

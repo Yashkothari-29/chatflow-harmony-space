@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Bell, Info, Search, Hash, Users } from "lucide-react";
 
@@ -9,6 +9,7 @@ interface ChatHeaderProps {
   channelType: 'channel' | 'direct' | 'group';
   onSearchClick: () => void;
   onInfoClick: () => void;
+  extraContent?: ReactNode;
 }
 
 const ChatHeader: React.FC<ChatHeaderProps> = ({
@@ -16,7 +17,8 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
   channelName,
   channelType,
   onSearchClick,
-  onInfoClick
+  onInfoClick,
+  extraContent
 }) => {
   return (
     <div className="border-b h-16 px-6 flex items-center justify-between">
@@ -46,6 +48,8 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
       </div>
       
       <div className="flex items-center space-x-2">
+        {extraContent}
+        
         <button 
           className="h-9 w-9 rounded-full flex items-center justify-center text-muted-foreground hover:bg-secondary"
           onClick={onSearchClick}
